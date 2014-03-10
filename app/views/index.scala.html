@@ -1,0 +1,46 @@
+
+@main {
+
+<!--[if lt IE 9]>
+<script type="text/javascript">
+    document.location = "sorry";
+</script>
+<![endif]-->
+    <div class="content">
+        <h2>ONS Datasets</h2>
+        <div class="chart">
+            <div id = "chart_div"></div>
+            <div id = "chart_ui">
+                <div id="tool_tip">
+                    
+                </div>
+                <ul class = "ui_list" id = "ui_time_period">
+                    <li class = "ui_elem_selected" id = "yearly">Yearly</li>
+                    <li class = "ui_elem" id = "quarterly">Quarterly</li>
+                    <li class = "ui_elem" id = "monthly">Monthly</li>
+                </ul>
+                <p />
+                <p />
+                <ul class = "ui_list" id = "ui_chart_scale">
+                    <li class = "ui_elem_selected" id = "linear">Linear</li>
+                    <li class = "ui_elem" id = "logarithmic">Logarithmic</li>
+                </ul>
+            </div>
+                       
+        </div>    
+        <div class="inputData">
+            <div class="input"><input id = "token_input"  /></div>
+
+            <div class="data">
+                <ul id = "chosen"></ul>
+                <div class="datacolumn" id="cdids">
+                    <p id = "instructions">
+                        Type to search. Try 'gross domestic product' or 'flour'.<br />
+                        Click to plot, then click again to remove.
+                    </p>
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div> 
+}

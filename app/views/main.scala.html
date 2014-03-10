@@ -1,0 +1,36 @@
+@(content: Html)
+
+	<!DOCTYPE html>
+	
+	<html lang="en">
+	<head>
+	  <meta charset="utf-8">
+	  <title>UKSTAT</title>
+	
+	  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	  <link rel="stylesheet" href='@routes.Assets.at("stylesheets/main.css")' type="text/css" />
+	  
+	  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+	  <script src='@routes.Assets.at("javascripts/settings.js")'></script>
+	  <script src='@routes.Assets.at("javascripts/datasets.js")'></script>
+	  <!--[if lt IE 9]>
+	  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	  <![endif]-->
+	</head>
+	<body>
+	    <div class="body">
+	        <div class="uberhead">
+	            <div class="head" >
+	                <h1>UKSTAT</h1>
+	                <span class="underhead">Nerding for Britain</span>        
+	            </div>
+	            <ul id = navigation>
+	                <li class = "headlink"><a class="navlink" href="/">Datasets</a></li>
+	                <li class = "headlink"><a class="navlink" href="/about">About</a></li>
+	                <li class = "headlink"><a class="navlink" href="https://github.com/jamougha/onsstat/tree/master">Github</a></li>
+	            </ul>
+	        </div>
+	        @content
+	    </div>
+	</body>
+	</html>
