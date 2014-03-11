@@ -24,7 +24,7 @@ public class MainController extends Controller {
     }
     
     public static Result getColumn(Long id) {
-       return ok(Test.getValue(id));
+       return ok(ReducedColumns.getData(id));
     }
     
     

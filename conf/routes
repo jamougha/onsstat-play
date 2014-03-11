@@ -4,7 +4,7 @@
 
 GET     /                           controllers.MainController.index()
 GET     /fetchtokens                controllers.MainController.fetchtokens()
-GET     /getColumn/:id              controllers.MainController.getColumn(id:Long)
+GET     /fetchcolumn/:id            controllers.MainController.getColumn(id:Long)
 
 #GET     /message                    controllers.MessageController.getMessage()
 #GET     /assets/javascripts/routes  controllers.MessageController.javascriptRoutes()
