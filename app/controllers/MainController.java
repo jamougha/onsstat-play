@@ -12,7 +12,6 @@ import play.data.*;
 import play.db.ebean.Model.*;
 
 public class MainController extends Controller {
-    DataSource ds;
     
     public static Result index() {
         return ok(views.html.index.render());
@@ -21,6 +20,10 @@ public class MainController extends Controller {
     public static Result getColumn(Long id) {
        return ok(ReducedColumns.getData(id));
     }
+
+    public static Result about() {
+        return ok(views.html.about.render());
+    }    
     
     
 }

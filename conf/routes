@@ -5,6 +5,7 @@
 GET     /                           controllers.MainController.index()
 GET     /tokenmatcher               controllers.WebSocketController.fetchtokens()
 GET     /fetchcolumn/:id            controllers.MainController.getColumn(id:Long)
+GET     /about                      controllers.MainController.about()
 
 #GET     /message                    controllers.MessageController.getMessage()
 #GET     /assets/javascripts/routes  controllers.MessageController.javascriptRoutes()
