@@ -229,7 +229,7 @@
 
     li.textContent = title;
     li.id = elem.column_id;
-    li.title = elem.datasets.join("\n");
+    li.title = "";//elem.datasets.join("\n");
     
     styleElem(li);
 
@@ -295,10 +295,11 @@
   */
   function sendTokens(event) {
     var input = document.getElementById("token_input"),
-        message = false;
+        message = "";
     if (DEBUG) {
       console.log('sending tokens');
     }
+    this.time = new Date();
     // numsent is used by the server as a kind of response header.
     // If we receive a response with an out-of-date numsent it can
     // be discarded.
@@ -313,7 +314,11 @@
       message = input.value;
     }
 
-    asock.send(JSON.stringify([++this.numsent, message]));
+    asock.send(JSON.stringify({
+    	ident: ++this.numsent, 
+    	tokens: message
+    }));
+    
 
   }
 
@@ -342,11 +347,12 @@
 
     return function (data) {
       var head = $('#cdids');
-
+      console.log(new Date() - sendTokens.time);
       var message = JSON.parse(data.data);
       var ident = message[0];
       var contents = message[1];
-
+      console.log(message);
+      /*
       if (ident < sendTokens.numsent) {
         buffer = [];
         return;
@@ -360,18 +366,20 @@
         }
         return;
       }
-
+	*/
       for (var i = 0; i < contents.length; i++) {
         var li = elementView(contents[i])
         li.onclick = liClickHandler(li);
         buffer.push(li);
       }
 
-      if (lastIdent !== ident) {
+      //if (lastIdent !== ident) {
+    	var ul = listView(buffer)
         head.empty();
-        head.append(listView(buffer));
+        head.append(ul);
         lastIdent = ident;
-      }
+        buffer = [];
+      //}
     };
   }());
 

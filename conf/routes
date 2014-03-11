@@ -3,7 +3,7 @@
 # ~~~~
 
 GET     /                           controllers.MainController.index()
-GET     /fetchtokens                controllers.MainController.fetchtokens()
+GET     /tokenmatcher               controllers.WebSocketController.fetchtokens()
 GET     /fetchcolumn/:id            controllers.MainController.getColumn(id:Long)
 
 #GET     /message                    controllers.MessageController.getMessage()

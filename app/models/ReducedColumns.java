@@ -15,9 +15,6 @@ public class ReducedColumns {
 
    public String cdid;
    
-   //@OneToMany
-   //public List<Long> datasets;
-   
    @Id
    public Long id;
    
