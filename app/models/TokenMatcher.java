@@ -10,6 +10,7 @@ import java.util.Collection;
 
 public class TokenMatcher {
    private static final boolean DEVEL = false;
+   
    public static class Datacolumn {
       public final String cdid;
       public final String name;
@@ -76,24 +77,27 @@ public class TokenMatcher {
    
    synchronized public static TokenMatcher getInstance() {
       if (instance == null) {
+         System.out.println("initializing cache");
          instance = new TokenMatcher();
-      }
       
-      List<ReducedColumns> columns = ReducedColumns.find.all();
-      if (DEVEL)
-         columns = columns.subList(0, columns.size()/10);
-      
-      for (ReducedColumns column: columns) {
-         Cdid cdid = Cdid.find.where()
-                         .eq("cdid", column.cdid)
-                         .findUnique();
-         Datacolumn data = new Datacolumn(cdid.cdid, cdid.name, column.id);
+         List<ReducedColumns> columns = ReducedColumns.find.all();
+         if (DEVEL)
+            columns = columns.subList(0, columns.size()/10);
          
-         for (String token : tokenize(cdid.name)) {
-            instance.insert(token, data);
+         for (ReducedColumns column: columns) {
+            Cdid cdid = Cdid.find.where()
+                            .eq("cdid", column.cdid)
+                            .findUnique();
+            Datacolumn data = new Datacolumn(cdid.cdid, cdid.name, column.id);
+            
+            for (String token : tokenize(cdid.name)) {
+               instance.insert(token, data);
+            }
          }
+       
       }
-   
       return instance;
+
    }
+
 }
