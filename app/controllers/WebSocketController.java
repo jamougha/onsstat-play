@@ -16,7 +16,6 @@ public class WebSocketController extends Controller {
    
    public static WebSocket<JsonNode> fetchtokens() {
       final TokenMatcher matcher = TokenMatcher.getInstance();
-
       
       return new WebSocket<JsonNode>() {    
         public void onReady(final WebSocket.In<JsonNode> in, 
@@ -31,7 +30,6 @@ public class WebSocketController extends Controller {
                    
                    Collection<TokenMatcher.Datacolumn> columns = matcher.find(tokens);
                    JsonNode outdata = mapper.createArrayNode();
-                   
                    
                    for (TokenMatcher.Datacolumn column : columns) {
                       JsonNode element = mapper.createObjectNode();

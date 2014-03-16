@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class TokenMatcher {
-   private static final boolean DEVEL = false;
-   
+   private static final boolean DEVEL = true;
+
    public static class Datacolumn {
       public final String cdid;
       public final String name;
@@ -77,14 +77,13 @@ public class TokenMatcher {
    
    synchronized public static TokenMatcher getInstance() {
       if (instance == null) {
-         System.out.println("initializing cache");
          instance = new TokenMatcher();
       
          List<ReducedColumns> columns = ReducedColumns.find.all();
          if (DEVEL)
             columns = columns.subList(0, columns.size()/10);
          
-         for (ReducedColumns column: columns) {
+         for (ReducedColumns column : columns) {
             Cdid cdid = Cdid.find.where()
                             .eq("cdid", column.cdid)
                             .findUnique();
