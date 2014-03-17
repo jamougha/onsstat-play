@@ -21,7 +21,7 @@ public class ReducedColumns {
    public String datacolumn;
    
    public static Finder<Long, ReducedColumns> find = 
-         new Finder<Long, ReducedColumns>(Long.class,ReducedColumns.class);
+         new Finder<Long, ReducedColumns>(Long.class, ReducedColumns.class);
    
    public static String getData(Long id) {
       ReducedColumns t = find.byId(id);

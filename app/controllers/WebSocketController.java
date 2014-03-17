@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.*;
 import java.util.Map;
+import models.Datacolumn;
 
 public class WebSocketController extends Controller {
 
@@ -28,10 +29,10 @@ public class WebSocketController extends Controller {
                    if (tokens.length() < 3)
                       return;
                    
-                   Collection<TokenMatcher.Datacolumn> columns = matcher.find(tokens);
+                   Collection<Datacolumn> columns = matcher.find(tokens);
                    JsonNode outdata = mapper.createArrayNode();
                    
-                   for (TokenMatcher.Datacolumn column : columns) {
+                   for (Datacolumn column : columns) {
                       JsonNode element = mapper.createObjectNode();
                       ((ObjectNode) element).put("cdid", column.cdid);
                       ((ObjectNode) element).put("name", column.name);

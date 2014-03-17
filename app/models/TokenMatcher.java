@@ -1,5 +1,7 @@
 package models;
       
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
@@ -11,19 +13,7 @@ import java.util.Collection;
 public class TokenMatcher {
    private static final boolean DEVEL = true;
 
-   public static class Datacolumn {
-      public final String cdid;
-      public final String name;
-      public final Long id;
-      
-      Datacolumn(String c, String n, Long i) {
-         cdid = c;
-         name = n;
-         id = i;
-      }
-   }
-   
-   private Map<String, Set<Datacolumn>> tokenMap = new HashMap<>();
+   private SuffixTree<Datacolumn> tokenMap = new SuffixTree<Datacolumn>();
    private static TokenMatcher instance;
    
    private TokenMatcher() {
@@ -31,16 +21,7 @@ public class TokenMatcher {
    }
    
    private void insert(String token, Datacolumn data) {
-      for (int i = token.length(); i > 1; i--) {
-         String suffix = token.substring(0, i);
-         Set<Datacolumn> s = tokenMap.get(suffix);
-         
-         if (s == null) {
-            s = new HashSet<Datacolumn>();
-            tokenMap.put(suffix, s);
-         }
-         s.add(data);
-      }
+      tokenMap.put(token, data);
    }
    
    public static List<String> tokenize(String tokenString) {
@@ -56,23 +37,51 @@ public class TokenMatcher {
    }
    
    public Collection<Datacolumn> find(final String tokens) {
-      List<Set<Datacolumn>> tokenMatches = new ArrayList<>();
+      final List<STreeResult<Datacolumn>> tokenMatches = new ArrayList<>();
+      Set<Datacolumn> allmatches = null;
+      
       for (String token : tokenize(tokens)) {
-         Set<Datacolumn> submatches = tokenMap.get(token);
-         if (submatches != null) 
-            tokenMatches.add(tokenMap.get(token));
+         STreeResult<Datacolumn> result = tokenMap.get(token);
+         tokenMatches.add(result);
+         
+         if (allmatches == null) {
+            allmatches = new HashSet<Datacolumn>();
+            allmatches.addAll(result.exact);
+            allmatches.addAll(result.partial);
+         } else {
+            Set<Datacolumn> submatches = new HashSet<Datacolumn>(result.exact);
+            submatches.addAll(result.partial);
+            allmatches.retainAll(submatches);
+         }
       }
+      assert allmatches != null;
       
-      if (tokenMatches.isEmpty())
-         return new ArrayList<Datacolumn>();
-
-      Set<Datacolumn> matches = new HashSet<Datacolumn>(tokenMatches.remove(0)); //new HashSet<>(tokenMatches.get(0));
+      List<Datacolumn> matchlist = new ArrayList(allmatches);
       
-      for (Set<Datacolumn> tokenMatch : tokenMatches) {
-         matches.retainAll(tokenMatch);
-      }
+      Collections.sort(matchlist, new Comparator<Datacolumn>() {
+         public int compare(Datacolumn d, Datacolumn p) {
+            int dexacts = 0, dpartials = 0, pexacts = 0, ppartials = 0;
+            
+            for (STreeResult r : tokenMatches) {
+               if (r.exact.contains(d)) 
+                  dexacts++;
+               if (r.exact.contains(p)) 
+                  pexacts++;
+               if (r.partial.contains(d)) 
+                  dpartials++;
+               if (r.partial.contains(p)) 
+                  ppartials++;
+            }
+            
+            if (dexacts != pexacts) {
+               return pexacts - dexacts;
+            } else {
+               return ppartials - dpartials;
+            }
+         }
+      });
       
-      return matches;
+      return matchlist;
    }
    
    synchronized public static TokenMatcher getInstance() {
@@ -81,7 +90,7 @@ public class TokenMatcher {
       
          List<ReducedColumns> columns = ReducedColumns.find.all();
          if (DEVEL)
-            columns = columns.subList(0, columns.size()/10);
+            columns = columns.subList(0, columns.size()/100);
          
          for (ReducedColumns column : columns) {
             Cdid cdid = Cdid.find.where()
