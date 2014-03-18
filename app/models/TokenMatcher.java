@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class TokenMatcher {
-   private static final boolean DEVEL = false;
+   private static final boolean DEVEL = true;
 
    private SuffixTree<Datacolumn> tokenMap = new SuffixTree<Datacolumn>();
    private static TokenMatcher instance;
@@ -100,7 +100,7 @@ public class TokenMatcher {
       
          List<ReducedColumns> columns = ReducedColumns.find.all();
          if (DEVEL)
-            columns = columns.subList(0, columns.size()/100);
+            columns = columns.subList(0, columns.size()/20);
          System.out.println(columns.size());
          for (ReducedColumns column : columns) {
             Cdid cdid = Cdid.find.where()
