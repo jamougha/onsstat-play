@@ -11,13 +11,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class TokenMatcher {
-   private static final boolean DEVEL = true;
+   private static final boolean DEVEL = false;
 
    private SuffixTree<Datacolumn> tokenMap = new SuffixTree<Datacolumn>();
    private static TokenMatcher instance;
    
    private TokenMatcher() {
-      
+      assert false;
+      // Empty to prevent instantiation
    }
    
    private void insert(String token, Datacolumn data) {
@@ -36,7 +37,12 @@ public class TokenMatcher {
       return tokens;
    }
    
-   public Collection<Datacolumn> find(final String tokens) {
+   /* Retrieve Datacolumns that match the tokens from the
+    * suffix tree. Only Datacolumns where the name matches all tokens 
+    * are returned. Results are sorted by the number of exact matches, then 
+    * the number of partial matches. */
+   
+   public List<Datacolumn> find(final String tokens) {
       final List<STreeResult<Datacolumn>> tokenMatches = new ArrayList<>();
       Set<Datacolumn> allmatches = null;
       
@@ -75,8 +81,12 @@ public class TokenMatcher {
             
             if (dexacts != pexacts) {
                return pexacts - dexacts;
-            } else {
+            } else if (ppartials != dpartials) {
                return ppartials - dpartials;
+            } else if (d.name.length() != p.name.length()){
+               return d.name.length() - p.name.length();
+            } else {
+               return p.name.compareTo(d.name);
             }
          }
       });
@@ -91,7 +101,7 @@ public class TokenMatcher {
          List<ReducedColumns> columns = ReducedColumns.find.all();
          if (DEVEL)
             columns = columns.subList(0, columns.size()/100);
-         
+         System.out.println(columns.size());
          for (ReducedColumns column : columns) {
             Cdid cdid = Cdid.find.where()
                             .eq("cdid", column.cdid)

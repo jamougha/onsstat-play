@@ -5,51 +5,106 @@ import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.mvc.*;
 import models.Cdid;
+
 import java.util.Collection;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.*;
+
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
 import models.Datacolumn;
+import play.libs.F.Promise;
+import play.libs.F.Function0;
+import play.libs.F.Function;
 
 public class WebSocketController extends Controller {
+   static final ObjectMapper mapper = new ObjectMapper();
 
+   static JsonNode datacolumnsToJson(Collection<Datacolumn> data, int ident) {
+
+      JsonNode outdata = mapper.createArrayNode();
+      
+      for (Datacolumn column : data) {
+         ObjectNode element = mapper.createObjectNode();
+         element.put("cdid", column.cdid);
+         element.put("name", column.name);
+         element.put("column_id", column.id);
+         ((ArrayNode) outdata).add((JsonNode)element);
+      }
+      
+      JsonNode output = mapper.createArrayNode();
+      ((ArrayNode) output).add(ident);
+      ((ArrayNode) output).add(outdata);
+      
+      return output;
+   }
+   
+   static void respond(int ident, String tokens, 
+         final WebSocket.Out<JsonNode> out, AtomicLong highIdent) {
+      TokenMatcher matcher = TokenMatcher.getInstance();
+      try {
+         if (tokens.length() < 2)
+            return;
+         
+         List<Datacolumn> columns = matcher.find(tokens);
+         
+         int i = 0;
+         final int chunkSize = 50;
+         do {
+            Thread.sleep(10);
+            if (highIdent.get() > ident) {
+               return;
+            }
+            
+            int end = Math.min(i + chunkSize, columns.size());
+            List<Datacolumn> chunk = columns.subList(i, end);
+            JsonNode output = datacolumnsToJson(chunk, ident);
+            
+            out.write(output);
+            i += chunkSize;
+         } while (i < columns.size()); 
+         
+         JsonNode endSignal = mapper.createArrayNode();
+         ((ArrayNode) endSignal).add(ident);
+         ((ArrayNode) endSignal).add("end");
+         
+         out.write(endSignal);
+         
+      } catch (Exception e) {
+         // TODO: log this error
+         e.printStackTrace();
+         JsonNode j = mapper.createObjectNode();
+         ((ObjectNode) j).put("error:", e.toString());
+         out.write(j);
+      }
+   }
    
    public static WebSocket<JsonNode> fetchtokens() {
-      final TokenMatcher matcher = TokenMatcher.getInstance();
-      
       return new WebSocket<JsonNode>() {    
         public void onReady(final WebSocket.In<JsonNode> in, 
                             final WebSocket.Out<JsonNode> out) {
           in.onMessage(new Callback<JsonNode>() {
-             public void invoke(JsonNode event) {
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                   String tokens = event.findValue("tokens").asText();
-                   if (tokens.length() < 3)
-                      return;
-                   
-                   Collection<Datacolumn> columns = matcher.find(tokens);
-                   JsonNode outdata = mapper.createArrayNode();
-                   
-                   for (Datacolumn column : columns) {
-                      JsonNode element = mapper.createObjectNode();
-                      ((ObjectNode) element).put("cdid", column.cdid);
-                      ((ObjectNode) element).put("name", column.name);
-                      ((ObjectNode) element).put("column_id", column.id);
-                      ((ArrayNode) outdata).add(element);
-                   }
-                   
-                   JsonNode output = mapper.createArrayNode();
-                   ((ArrayNode) output).add(event.findValue("ident"));
-                   ((ArrayNode) output).add(outdata);
-                   out.write(output);
-                } catch (Exception e) {
-                   // TODO: log this error
-                   JsonNode j = mapper.createObjectNode();
-                   ((ObjectNode) j).put("error:", e.toString());
-                   out.write(j);
+             
+             final AtomicLong highIdent = new AtomicLong();
+             final Promise<Boolean> exec = Promise.promise( new Function0<Boolean>() {
+                public Boolean apply() {
+                   return true; // needed to satisfy the Promise interface
                 }
+             });
+             public void invoke(JsonNode event) {
+                final String tokens = event.findValue("tokens").asText();
+                final int ident = event.findValue("ident").asInt();
+                highIdent.set(ident);
+                exec.map( new Function<Boolean, Boolean>() {
+                   public Boolean apply(Boolean b) {
+                      respond(ident, tokens, out, highIdent);
+                      return true; // needed to satisfy the Promise interface
+                   }
+                });
+                
              }
           });
           

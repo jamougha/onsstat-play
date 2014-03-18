@@ -293,19 +293,16 @@
      via websockets. Needs to be registered as a handler for input
      events on the input box.
   */
+  var numsent = 0
   function sendTokens(event) {
     var input = document.getElementById("token_input"),
-        message = "";
+        message = false;
     if (DEBUG) {
       console.log('sending tokens');
     }
-    this.time = new Date();
     // numsent is used by the server as a kind of response header.
     // If we receive a response with an out-of-date numsent it can
     // be discarded.
-    if (!this.numsent) {
-      this.numsent = 0;
-    }
     if (input.value === "") {
       $('#cdids').empty();
     }
@@ -315,12 +312,12 @@
     }
 
     asock.send(JSON.stringify({
-    	ident: ++this.numsent, 
+    	ident: ++numsent, 
     	tokens: message
     }));
-    
-
   }
+
+  
 
   /* Callback for websocket responses from the server. 
 
@@ -347,39 +344,43 @@
 
     return function (data) {
       var head = $('#cdids');
-      console.log(new Date() - sendTokens.time);
+
       var message = JSON.parse(data.data);
       var ident = message[0];
       var contents = message[1];
-      console.log(message);
-      /*
-      if (ident < sendTokens.numsent) {
-        buffer = [];
+      
+      if (ident < numsent) {
+        if (DEBUG) {
+          console.log("old ident");
+    	}
         return;
       }
 
       if (contents === 'end') {
-        if (buffer) {
+        if (buffer !== []) {
+          head.empty();
           var ul = listView(buffer);
           head.append(ul);
           buffer = [];
         }
         return;
       }
-	*/
+      
+      if (lastIdent < ident) {
+    	buffer = [];
+      }
+
       for (var i = 0; i < contents.length; i++) {
         var li = elementView(contents[i])
         li.onclick = liClickHandler(li);
         buffer.push(li);
       }
 
-      //if (lastIdent !== ident) {
-    	var ul = listView(buffer)
+      if (lastIdent < ident) {
         head.empty();
-        head.append(ul);
+        head.append(listView(buffer));
         lastIdent = ident;
-        buffer = [];
-      //}
+      }
     };
   }());
 
