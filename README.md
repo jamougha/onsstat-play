@@ -4,7 +4,7 @@ onsstat-play
 A website for graphing datasets from the Office of National Statistics.
 
 
-[Try it out now.](http://81.4.125.205/)
+[Try it out now!](http://81.4.125.205/)
 
 
 This is a port of my original Python version, [onsstat](https://github.com/jamougha/onsstat). 
