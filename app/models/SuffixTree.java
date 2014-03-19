@@ -5,17 +5,29 @@ import java.util.Set;
 
 public final class SuffixTree<T> {
    private final class Node<T> {
-      final Node<T>[] children = new Node[26];
+      final Node<T>[] children = new Node[36];
       final Set<T> elements = new HashSet<T>();
    }
    
    private final Node<T> root = new Node<T>();
 
+   private int indexOf(char c) {
+      int i = (int)c;
+      if (48 <= i && i < 58) {
+         return i - 48;
+      } else if (65 <= i && i < 91) {
+         return i - 55;
+      } else {
+         assert false;
+         return 0; // satisfy eclipse
+      }
+   }
+   
    public void put(String key, T value) {
       Node<T> node = root;
       
       for (int i = 0; i < key.length(); i++) {
-         int index = (int)key.charAt(i) - 65;
+         int index = indexOf(key.charAt(i));
          
          if (node.children[index] == null)
             node.children[index] = new Node<T>();
@@ -41,7 +53,7 @@ public final class SuffixTree<T> {
       Node<T> node = root;
       
       for (int i = 0; i < key.length(); i++) {
-         int index = (int)key.charAt(i) - 65;
+         int index = indexOf(key.charAt(i));
          
          if (node.children[index] == null) 
             return new STreeResult<T>(new HashSet<T>(), new HashSet<T>());

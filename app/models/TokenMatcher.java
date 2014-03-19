@@ -111,6 +111,7 @@ public class TokenMatcher {
             for (String token : tokenize(cdid.name)) {
                instance.insert(token, data);
             }
+            instance.insert(cdid.cdid, data);
          }
        
       }
