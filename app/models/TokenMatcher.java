@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class TokenMatcher {
-   private static final boolean DEVEL = true;
+   private static final boolean DEVEL = false;
 
    private SuffixTree<Datacolumn> tokenMap = new SuffixTree<Datacolumn>();
    private static TokenMatcher instance;
