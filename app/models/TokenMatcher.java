@@ -40,7 +40,8 @@ public class TokenMatcher {
    /* Retrieve Datacolumns that match the tokens from the
     * suffix tree. Only Datacolumns where the name matches all tokens 
     * are returned. Results are sorted by the number of exact matches, then 
-    * the number of partial matches. */
+    * the number of partial matches. 
+    */
    
    public List<Datacolumn> find(final String tokens) {
       final List<STreeResult<Datacolumn>> tokenMatches = new ArrayList<>();
