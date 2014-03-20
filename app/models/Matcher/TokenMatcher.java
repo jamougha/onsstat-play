@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 
-import models.MatchResult;
 import models.ReducedColumns;
 import play.Logger;
 import play.db.*;
@@ -24,46 +23,46 @@ import play.db.*;
 class TokenMatcher {
    private static final boolean DEVEL = true;
 
-   private SuffixTree<Datacolumn> tokenMap = new SuffixTree<>();
+   private SuffixTree<ColumnData> tokenMap = new SuffixTree<>();
    private static TokenMatcher instance;
    
-   void insert(String token, Datacolumn data) {
+   void insert(String token, ColumnData data) {
       tokenMap.put(token, data);
    }
    
-   /* Retrieve Datacolumns that match the tokens from the
-    * suffix tree. Only Datacolumns where the name matches all tokens 
+   /* Retrieve ColumnDatas that match the tokens from the
+    * suffix tree. Only ColumnDatas where the name matches all tokens 
     * are returned. Results are sorted by the number of exact matches, then 
     * the number of partial matches. 
     */
    
-   public List<Datacolumn> find(final List<String> tokens) {
-      final List<STreeResult<Datacolumn>> tokenMatches = new ArrayList<>();
-      Set<Datacolumn> allmatches = null;
+   public List<ColumnData> find(final List<String> tokens) {
+      final List<STreeResult<ColumnData>> tokenMatches = new ArrayList<>();
+      Set<ColumnData> allmatches = null;
       
       for (String token : tokens) {
-         STreeResult<Datacolumn> result = tokenMap.get(token);
+         STreeResult<ColumnData> result = tokenMap.get(token);
          tokenMatches.add(result);
          
          if (allmatches == null) {
-            allmatches = new HashSet<Datacolumn>();
+            allmatches = new HashSet<ColumnData>();
             allmatches.addAll(result.exact);
             allmatches.addAll(result.partial);
          } else {
-            Set<Datacolumn> submatches = new HashSet<Datacolumn>(result.exact);
+            Set<ColumnData> submatches = new HashSet<ColumnData>(result.exact);
             submatches.addAll(result.partial);
             allmatches.retainAll(submatches);
          }
       }
       assert allmatches != null;
       
-      List<Datacolumn> matchlist = new ArrayList<>(allmatches);
+      List<ColumnData> matchlist = new ArrayList<>(allmatches);
       
-      Collections.sort(matchlist, new Comparator<Datacolumn>() {
-         public int compare(Datacolumn d, Datacolumn p) {
+      Collections.sort(matchlist, new Comparator<ColumnData>() {
+         public int compare(ColumnData d, ColumnData p) {
             int dexacts = 0, dpartials = 0, pexacts = 0, ppartials = 0;
             
-            for (STreeResult<Datacolumn> r : tokenMatches) {
+            for (STreeResult<ColumnData> r : tokenMatches) {
                if (r.exact.contains(d)) 
                   dexacts++;
                if (r.exact.contains(p)) 

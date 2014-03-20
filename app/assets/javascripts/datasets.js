@@ -255,7 +255,7 @@
 
     li.textContent = title;
     li.id = elem.column_id;
-    li.title = "";//elem.datasets.join("\n");
+    li.title = elem.titles;
     
     styleElem(li);
 

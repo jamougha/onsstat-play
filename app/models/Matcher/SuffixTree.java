@@ -25,7 +25,6 @@ final class SuffixTree<T> {
    
    public void put(String key, T value) {
       Node<T> node = root;
-      
       for (int i = 0; i < key.length(); i++) {
          int index = indexOf(key.charAt(i));
          

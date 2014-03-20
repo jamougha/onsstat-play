@@ -4,7 +4,6 @@ import play.Logger;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.mvc.*;
-import models.Cdid;
 
 import java.util.Collection;
 import java.util.List;
@@ -12,11 +11,10 @@ import java.util.List;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.*;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import models.MatchResult;
-import models.Matcher.CdidSearcher;
+import models.Matcher.ColumnData;
+import models.Matcher.DataCache;
 import play.libs.F.Promise;
 import play.libs.F.Function0;
 import play.libs.F.Function;
@@ -24,15 +22,29 @@ import play.libs.F.Function;
 public class WebSocketController extends Controller {
    static final ObjectMapper mapper = new ObjectMapper();
 
-   static JsonNode datacolumnsToJson(Collection<MatchResult> data, int ident) {
+   private static String titles(short[] datasets) {
+      DataCache cache = DataCache.getInstance();
+      StringBuilder titles = new StringBuilder();
+      for (short id : datasets) {
+         titles.append(cache.datasetName(id));
+         titles.append('\n');
+      }
+      titles.deleteCharAt(titles.length() - 1);
+      
+      return titles.toString();
+      
+   }
+   
+   private static JsonNode datacolumnsToJson(Collection<ColumnData> data, int ident) {
 
       JsonNode outdata = mapper.createArrayNode();
       
-      for (MatchResult column : data) {
+      for (ColumnData column : data) {
          ObjectNode element = mapper.createObjectNode();
          element.put("cdid", column.cdid);
          element.put("name", column.name);
          element.put("column_id", column.id);
+         element.put("titles", titles(column.datasets));
          ((ArrayNode) outdata).add((JsonNode)element);
       }
       
@@ -43,25 +55,26 @@ public class WebSocketController extends Controller {
       return output;
    }
    
-   static void respond(int ident, String tokens, 
+   private static void respond(int ident, String tokens, 
          final WebSocket.Out<JsonNode> out, AtomicLong highIdent) {
-      CdidSearcher matcher = CdidSearcher.getInstance();
+      DataCache matcher = DataCache.getInstance();
       try {
          if (tokens.length() < 2)
             return;
          
-         List<MatchResult> columns = matcher.find(tokens);
+         List<ColumnData> columns = matcher.matchTokens(tokens);
          
          int i = 0;
          final int chunkSize = 50;
+         
          do {
             Thread.sleep(10);
             if (highIdent.get() > ident) {
                return;
             }
-            
             int end = Math.min(i + chunkSize, columns.size());
-            List<MatchResult> chunk = columns.subList(i, end);
+            List<ColumnData> chunk = columns.subList(i, end);
+            
             JsonNode output = datacolumnsToJson(chunk, ident);
             
             out.write(output);
@@ -75,7 +88,6 @@ public class WebSocketController extends Controller {
          out.write(endSignal);
          
       } catch (Exception e) {
-         // TODO: log this error
          e.printStackTrace();
          Logger.error("In WebSocketController.respond: " + e.toString());
       }
