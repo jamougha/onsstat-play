@@ -1,8 +1,8 @@
-package models;
+package models.Matcher;
 
 import java.util.Set;
 
-public class STreeResult<T> {
+class STreeResult<T> {
    public final Set<T> exact;
    public final Set<T> partial;
    

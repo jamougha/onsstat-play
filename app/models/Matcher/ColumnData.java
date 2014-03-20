@@ -1,14 +1,18 @@
-package models;
+package models.Matcher;
 
-public class Datacolumn {
+import java.util.Arrays;
+
+public class ColumnData {
    public final String cdid;
    public final String name;
-   public final long id;
+   public final int id;
+   public final short[] datasets;
    
-   Datacolumn(String c, String n, Long i) {
+   public ColumnData(String c, String n, int i, short[] d) {
       cdid = c;
       name = n;
       id = i;
+      datasets = d;
    }
 
    @Override
@@ -16,7 +20,8 @@ public class Datacolumn {
       final int prime = 31;
       int result = 1;
       result = prime * result + ((cdid == null) ? 0 : cdid.hashCode());
-      result = prime * result + (int) (id ^ (id >>> 32));
+      result = prime * result + Arrays.hashCode(datasets);
+      result = prime * result + id;
       result = prime * result + ((name == null) ? 0 : name.hashCode());
       return result;
    }
@@ -29,11 +34,13 @@ public class Datacolumn {
          return false;
       if (getClass() != obj.getClass())
          return false;
-      Datacolumn other = (Datacolumn) obj;
+      ColumnData other = (ColumnData) obj;
       if (cdid == null) {
          if (other.cdid != null)
             return false;
       } else if (!cdid.equals(other.cdid))
+         return false;
+      if (!Arrays.equals(datasets, other.datasets))
          return false;
       if (id != other.id)
          return false;
