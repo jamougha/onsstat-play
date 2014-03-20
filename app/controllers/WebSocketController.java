@@ -97,8 +97,8 @@ public class WebSocketController extends Controller {
       return new WebSocket<JsonNode>() {    
         public void onReady(final WebSocket.In<JsonNode> in, 
                             final WebSocket.Out<JsonNode> out) {
+
           in.onMessage(new Callback<JsonNode>() {
-             
              final AtomicLong highIdent = new AtomicLong();
              final Promise<Boolean> exec = Promise.promise( new Function0<Boolean>() {
                 public Boolean apply() {
