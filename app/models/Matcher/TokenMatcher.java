@@ -12,21 +12,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 
-import models.Datacolumn;
+import models.MatchResult;
 import models.ReducedColumns;
 import play.Logger;
 import play.db.*;
 
-public class TokenMatcher {
+/** Interface to SuffixTree for matching token strings. 
+ *  Also handles ordering of results.  
+ */
+
+class TokenMatcher {
    private static final boolean DEVEL = true;
 
-   private SuffixTree<Datacolumn> tokenMap = new SuffixTree<Datacolumn>();
+   private SuffixTree<Datacolumn> tokenMap = new SuffixTree<>();
    private static TokenMatcher instance;
    
-   private void insert(String token, Datacolumn data) {
+   void insert(String token, Datacolumn data) {
       tokenMap.put(token, data);
    }
-   
    
    /* Retrieve Datacolumns that match the tokens from the
     * suffix tree. Only Datacolumns where the name matches all tokens 
@@ -86,52 +89,6 @@ public class TokenMatcher {
       return matchlist;
    }
    
-   synchronized public static TokenMatcher getInstance() {
-      if (instance == null) {
-         instance = new TokenMatcher();
-      
-         List<ReducedColumns> columns = ReducedColumns.find.all();
-         if (DEVEL)
-            columns = columns.subList(0, columns.size()/20);
 
-         try (Connection conn = DB.getConnection()) {
-            for (ReducedColumns column : columns) {
-               String query = "SELECT c.name, r.id, r.datasets "
-                            + "FROM reduced_columns r, cdids c "
-                            + "WHERE r.cdid = c.cdid AND c.cdid = ?";
-               
-               PreparedStatement stmt = conn.prepareStatement(query);
-               stmt.setString(1, column.cdid);
-               ResultSet rs = stmt.executeQuery();
-               
-               while (rs.next()) {
-                  String name = rs.getString(1);
-                  int id = rs.getInt(2);
-                  
-                  Array dataArray = rs.getArray(3);
-                  Integer[] datasets = (Integer[])dataArray.getArray();
-                  short[] dataShorts = new short[datasets.length];
-                  
-                  for (int i = 0; i < datasets.length; i++) {
-                     dataShorts[i] = datasets[i].shortValue();
-                  }
-                  
-                  Datacolumn data = new Datacolumn(column.cdid, name, id, dataShorts);
-                  
-                  for (String token : tokenize(name)) {
-                     instance.insert(token, data);
-                  }
-                  instance.insert(column.cdid, data);
-               }
-            }
-         } catch (SQLException e) {
-            e.printStackTrace();
-            Logger.error("In tokenmatcher, while building instance: " + e.toString());
-         }
-       
-      }
-      return instance;
-
-   }
 
 }

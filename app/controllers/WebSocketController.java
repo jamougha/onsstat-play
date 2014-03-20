@@ -1,5 +1,6 @@
 package controllers;
 
+import play.Logger;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.mvc.*;
@@ -14,8 +15,8 @@ import com.fasterxml.jackson.databind.node.*;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import models.Datacolumn;
-import models.Matcher.TokenMatcher;
+import models.MatchResult;
+import models.Matcher.CdidSearcher;
 import play.libs.F.Promise;
 import play.libs.F.Function0;
 import play.libs.F.Function;
@@ -23,11 +24,11 @@ import play.libs.F.Function;
 public class WebSocketController extends Controller {
    static final ObjectMapper mapper = new ObjectMapper();
 
-   static JsonNode datacolumnsToJson(Collection<Datacolumn> data, int ident) {
+   static JsonNode datacolumnsToJson(Collection<MatchResult> data, int ident) {
 
       JsonNode outdata = mapper.createArrayNode();
       
-      for (Datacolumn column : data) {
+      for (MatchResult column : data) {
          ObjectNode element = mapper.createObjectNode();
          element.put("cdid", column.cdid);
          element.put("name", column.name);
@@ -44,12 +45,12 @@ public class WebSocketController extends Controller {
    
    static void respond(int ident, String tokens, 
          final WebSocket.Out<JsonNode> out, AtomicLong highIdent) {
-      TokenMatcher matcher = TokenMatcher.getInstance();
+      CdidSearcher matcher = CdidSearcher.getInstance();
       try {
          if (tokens.length() < 2)
             return;
          
-         List<Datacolumn> columns = matcher.find(tokens);
+         List<MatchResult> columns = matcher.find(tokens);
          
          int i = 0;
          final int chunkSize = 50;
@@ -60,7 +61,7 @@ public class WebSocketController extends Controller {
             }
             
             int end = Math.min(i + chunkSize, columns.size());
-            List<Datacolumn> chunk = columns.subList(i, end);
+            List<MatchResult> chunk = columns.subList(i, end);
             JsonNode output = datacolumnsToJson(chunk, ident);
             
             out.write(output);
@@ -76,9 +77,7 @@ public class WebSocketController extends Controller {
       } catch (Exception e) {
          // TODO: log this error
          e.printStackTrace();
-         JsonNode j = mapper.createObjectNode();
-         ((ObjectNode) j).put("error:", e.toString());
-         out.write(j);
+         Logger.error("In WebSocketController.respond: " + e.toString());
       }
    }
    
