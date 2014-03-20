@@ -27,17 +27,6 @@ public class TokenMatcher {
       tokenMap.put(token, data);
    }
    
-   public static List<String> tokenize(String tokenString) {
-      List<String> tokens = new ArrayList<>();
-      String[] maybeTokens = tokenString.toUpperCase().split("[^A-Z]");
-      
-      for (String token : maybeTokens) {
-         if (token != null)
-            tokens.add(token);
-      }
-      
-      return tokens;
-   }
    
    /* Retrieve Datacolumns that match the tokens from the
     * suffix tree. Only Datacolumns where the name matches all tokens 
@@ -45,11 +34,11 @@ public class TokenMatcher {
     * the number of partial matches. 
     */
    
-   public List<Datacolumn> find(final String tokens) {
+   public List<Datacolumn> find(final List<String> tokens) {
       final List<STreeResult<Datacolumn>> tokenMatches = new ArrayList<>();
       Set<Datacolumn> allmatches = null;
       
-      for (String token : tokenize(tokens)) {
+      for (String token : tokens) {
          STreeResult<Datacolumn> result = tokenMap.get(token);
          tokenMatches.add(result);
          
