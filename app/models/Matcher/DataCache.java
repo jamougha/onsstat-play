@@ -21,7 +21,8 @@ import play.db.DB;
 
 public class DataCache {
    private static DataCache instance;
-   private static final boolean DEVEL = true;
+   private static final boolean DEVEL = false;
+   
    private final TokenMatcher matcher = new TokenMatcher();
    private final Map<Integer, String> datasetsById = new HashMap<>();
    
