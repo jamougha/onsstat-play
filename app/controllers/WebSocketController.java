@@ -1,6 +1,5 @@
 package controllers;
 
-import models.TokenMatcher;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.mvc.*;
@@ -16,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import models.Datacolumn;
+import models.Matcher.TokenMatcher;
 import play.libs.F.Promise;
 import play.libs.F.Function0;
 import play.libs.F.Function;
@@ -94,10 +94,12 @@ public class WebSocketController extends Controller {
                    return true; // needed to satisfy the Promise interface
                 }
              });
+             
              public void invoke(JsonNode event) {
                 final String tokens = event.findValue("tokens").asText();
                 final int ident = event.findValue("ident").asInt();
                 highIdent.set(ident);
+                
                 exec.map( new Function<Boolean, Boolean>() {
                    public Boolean apply(Boolean b) {
                       respond(ident, tokens, out, highIdent);
@@ -108,13 +110,8 @@ public class WebSocketController extends Controller {
              }
           });
           
-          // When the socket is closed.
           in.onClose(new Callback0() {
-             public void invoke() {
-                 
-               System.out.println("Disconnected");
-                 
-             }
+             public void invoke() {}
           });
         }
         

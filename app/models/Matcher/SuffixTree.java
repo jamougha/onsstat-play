@@ -1,9 +1,9 @@
-package models;
+package models.Matcher;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public final class SuffixTree<T> {
+final class SuffixTree<T> {
    private final class Node<T> {
       final Node<T>[] children = new Node[36];
       final Set<T> elements = new HashSet<T>();

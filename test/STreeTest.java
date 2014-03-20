@@ -7,8 +7,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import models.SuffixTree;
 import models.*;
+import models.Matcher.STreeResult;
+import models.Matcher.SuffixTree;
 
 public class STreeTest {
 

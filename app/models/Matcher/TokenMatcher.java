@@ -1,25 +1,27 @@
-package models;
+package models.Matcher;
       
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collection;
+
+import models.Datacolumn;
+import models.ReducedColumns;
+import play.Logger;
+import play.db.*;
 
 public class TokenMatcher {
    private static final boolean DEVEL = true;
 
    private SuffixTree<Datacolumn> tokenMap = new SuffixTree<Datacolumn>();
    private static TokenMatcher instance;
-   
-   private TokenMatcher() {
-      assert false;
-      // Empty to prevent instantiation
-   }
    
    private void insert(String token, Datacolumn data) {
       tokenMap.put(token, data);
@@ -63,13 +65,13 @@ public class TokenMatcher {
       }
       assert allmatches != null;
       
-      List<Datacolumn> matchlist = new ArrayList(allmatches);
+      List<Datacolumn> matchlist = new ArrayList<>(allmatches);
       
       Collections.sort(matchlist, new Comparator<Datacolumn>() {
          public int compare(Datacolumn d, Datacolumn p) {
             int dexacts = 0, dpartials = 0, pexacts = 0, ppartials = 0;
             
-            for (STreeResult r : tokenMatches) {
+            for (STreeResult<Datacolumn> r : tokenMatches) {
                if (r.exact.contains(d)) 
                   dexacts++;
                if (r.exact.contains(p)) 
@@ -102,17 +104,40 @@ public class TokenMatcher {
          List<ReducedColumns> columns = ReducedColumns.find.all();
          if (DEVEL)
             columns = columns.subList(0, columns.size()/20);
-         System.out.println(columns.size());
-         for (ReducedColumns column : columns) {
-            Cdid cdid = Cdid.find.where()
-                            .eq("cdid", column.cdid)
-                            .findUnique();
-            Datacolumn data = new Datacolumn(cdid.cdid, cdid.name, column.id);
-            
-            for (String token : tokenize(cdid.name)) {
-               instance.insert(token, data);
+
+         try (Connection conn = DB.getConnection()) {
+            for (ReducedColumns column : columns) {
+               String query = "SELECT c.name, r.id, r.datasets "
+                            + "FROM reduced_columns r, cdids c "
+                            + "WHERE r.cdid = c.cdid AND c.cdid = ?";
+               
+               PreparedStatement stmt = conn.prepareStatement(query);
+               stmt.setString(1, column.cdid);
+               ResultSet rs = stmt.executeQuery();
+               
+               while (rs.next()) {
+                  String name = rs.getString(1);
+                  int id = rs.getInt(2);
+                  
+                  Array dataArray = rs.getArray(3);
+                  Integer[] datasets = (Integer[])dataArray.getArray();
+                  short[] dataShorts = new short[datasets.length];
+                  
+                  for (int i = 0; i < datasets.length; i++) {
+                     dataShorts[i] = datasets[i].shortValue();
+                  }
+                  
+                  Datacolumn data = new Datacolumn(column.cdid, name, id, dataShorts);
+                  
+                  for (String token : tokenize(name)) {
+                     instance.insert(token, data);
+                  }
+                  instance.insert(column.cdid, data);
+               }
             }
-            instance.insert(cdid.cdid, data);
+         } catch (SQLException e) {
+            e.printStackTrace();
+            Logger.error("In tokenmatcher, while building instance: " + e.toString());
          }
        
       }
