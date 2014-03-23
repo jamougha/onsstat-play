@@ -25,7 +25,6 @@ public class WebSocketController extends Controller {
 
    
    private static JsonNode datacolumnsToJson(Collection<ColumnData> data, int ident) {
-
       JsonNode outdata = mapper.createArrayNode();
       
       for (ColumnData column : data) {
@@ -57,10 +56,6 @@ public class WebSocketController extends Controller {
          final int chunkSize = 50;
          
          do {
-            Thread.sleep(10);
-            if (highIdent.get() > ident) {
-               return;
-            }
             int end = Math.min(i + chunkSize, columns.size());
             List<ColumnData> chunk = columns.subList(i, end);
             
@@ -68,6 +63,11 @@ public class WebSocketController extends Controller {
             
             out.write(output);
             i += chunkSize;
+
+            Thread.yield();
+            if (highIdent.get() > ident) {
+               return;
+            }
          } while (i < columns.size()); 
          
          JsonNode endSignal = mapper.createArrayNode();
