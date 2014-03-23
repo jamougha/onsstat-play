@@ -35,7 +35,6 @@ public class DataCache {
    /** Fetch the name of a dataset given its id
     */
    public String datasetName(int id) {
-      getInstance(); // initialize everything if we haven't already
       return datasetsById.get(id);
    }
    
@@ -43,6 +42,15 @@ public class DataCache {
    private DataCache() {
       //need to drop down to JDBC because ebean can't do postgres arrays
       try (Connection conn = DB.getConnection()) {
+         // Cache the titles of datasets so that the hover-text 
+         // can be generated quickly
+         String query2 = "SELECT id, title FROM datasets";
+         PreparedStatement stmt2 = conn.prepareStatement(query2);
+         ResultSet drs = stmt2.executeQuery();
+         while (drs.next()) {
+            datasetsById.put(drs.getInt(1), drs.getString(2));
+         }
+
          // Fill the data structure with mappings from tokens
          // to Datacolumns
          String query = "SELECT c.cdid, c.name, r.id, r.datasets "
@@ -55,19 +63,24 @@ public class DataCache {
          while (rs.next()) {
             insertResultSet(rs);
          }
-         // Cache the titles of datasets so that the hover-text 
-         // can be generated quickly
-         String query2 = "SELECT id, title FROM datasets";
-         PreparedStatement stmt2 = conn.prepareStatement(query2);
-         ResultSet drs = stmt2.executeQuery();
-         while (drs.next()) {
-            datasetsById.put(drs.getInt(1), drs.getString(2));
-         }
+
             
       } catch (SQLException e) {
          e.printStackTrace();
          Logger.error("In tokenmatcher, while building instance: " + e.toString());
       }
+   }
+   
+   private String titles(short[] datasets) {
+      StringBuilder titles = new StringBuilder();
+      for (short id : datasets) {
+         titles.append(datasetName(id));
+         titles.append('\n');
+      }
+      titles.deleteCharAt(titles.length() - 1);
+      
+      return titles.toString();
+      
    }
    
    private void insertResultSet(ResultSet rs) throws SQLException {
@@ -83,7 +96,7 @@ public class DataCache {
          dataShorts[i] = datasets[i].shortValue();
       }
       
-      ColumnData data = new ColumnData(cdid, name, id, dataShorts);
+      ColumnData data = new ColumnData(cdid, name, id, titles(dataShorts));
       for (String token : tokenize(name)) {
          matcher.insert(token, data);
       }

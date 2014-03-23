@@ -22,18 +22,7 @@ import play.libs.F.Function;
 public class WebSocketController extends Controller {
    static final ObjectMapper mapper = new ObjectMapper();
 
-   private static String titles(short[] datasets) {
-      DataCache cache = DataCache.getInstance();
-      StringBuilder titles = new StringBuilder();
-      for (short id : datasets) {
-         titles.append(cache.datasetName(id));
-         titles.append('\n');
-      }
-      titles.deleteCharAt(titles.length() - 1);
-      
-      return titles.toString();
-      
-   }
+
    
    private static JsonNode datacolumnsToJson(Collection<ColumnData> data, int ident) {
 
@@ -44,7 +33,7 @@ public class WebSocketController extends Controller {
          element.put("cdid", column.cdid);
          element.put("name", column.name);
          element.put("column_id", column.id);
-         element.put("titles", titles(column.datasets));
+         element.put("titles", column.datasets);
          ((ArrayNode) outdata).add((JsonNode)element);
       }
       
