@@ -32,12 +32,6 @@ public class DataCache {
       return matches;     
    }
    
-   /** Fetch the name of a dataset given its id
-    */
-   public String datasetName(int id) {
-      return datasetsById.get(id);
-   }
-   
    /** Do the DB work to initialize the cache */
    private DataCache() {
       //need to drop down to JDBC because ebean can't do postgres arrays
@@ -47,10 +41,10 @@ public class DataCache {
          String query2 = "SELECT id, title FROM datasets";
          PreparedStatement stmt2 = conn.prepareStatement(query2);
          ResultSet drs = stmt2.executeQuery();
+
          while (drs.next()) {
             datasetsById.put(drs.getInt(1), drs.getString(2));
          }
-
          // Fill the data structure with mappings from tokens
          // to Datacolumns
          String query = "SELECT c.cdid, c.name, r.id, r.datasets "
@@ -59,9 +53,13 @@ public class DataCache {
          
          PreparedStatement stmt = conn.prepareStatement(query);
          ResultSet rs = stmt.executeQuery();
-         
+
          while (rs.next()) {
-            insertResultSet(rs);
+            ColumnData elem = toColumnData(rs);
+            for (String token : tokenize(elem.name)) {
+               matcher.insert(token, elem);
+            }
+            matcher.insert(elem.cdid, elem);
          }
 
             
@@ -71,38 +69,36 @@ public class DataCache {
       }
    }
    
-   private String titles(short[] datasets) {
+   /** takes a JDBC ResultSet and turns it into a ColumnData instance */
+   private ColumnData toColumnData(ResultSet rs) throws SQLException {
+      String cdid = rs.getString("cdid");
+      String name = rs.getString("name");
+      int id = rs.getInt("id");
+      Array dataArray = rs.getArray("datasets");
+
+      Integer[] datasets = (Integer[])dataArray.getArray();
+      
+      return new ColumnData(cdid, name, id, titles(datasets));
+      
+   }
+   
+   /** Build a string representing the titles of the datasets the 
+   *   cdid data is contained in. 
+   */
+   private String titles(Integer[] datasets) {
       StringBuilder titles = new StringBuilder();
-      for (short id : datasets) {
-         titles.append(datasetName(id));
+      for (int id : datasets) {
+         titles.append(datasetsById.get(id));
          titles.append('\n');
       }
       titles.deleteCharAt(titles.length() - 1);
       
-      return titles.toString();
+      String s = titles.toString();
+      
+      return s;
       
    }
-   
-   private void insertResultSet(ResultSet rs) throws SQLException {
-      String cdid = rs.getString(1);
-      String name = rs.getString(2);
-      int id = rs.getInt(3);
-      Array dataArray = rs.getArray(4);
 
-      Integer[] datasets = (Integer[])dataArray.getArray();
-      short[] dataShorts = new short[datasets.length];
-      
-      for (int i = 0; i < datasets.length; i++) {
-         dataShorts[i] = datasets[i].shortValue();
-      }
-      
-      ColumnData data = new ColumnData(cdid, name, id, titles(dataShorts));
-      for (String token : tokenize(name)) {
-         matcher.insert(token, data);
-      }
-      matcher.insert(cdid, data);
-   }
-   
    private static List<String> tokenize(String tokenString) {
       List<String> tokens = new ArrayList<>();
       String[] maybeTokens = tokenString.toUpperCase().split("[^A-Z0-9]");

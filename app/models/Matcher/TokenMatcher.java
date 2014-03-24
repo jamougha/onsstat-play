@@ -16,15 +16,14 @@ import models.ReducedColumns;
 import play.Logger;
 import play.db.*;
 
-/** Interface to SuffixTree for matching token strings. 
+/** Interface to Trie for matching token strings. 
  *  Also handles ordering of results.  
  */
 
 class TokenMatcher {
    private static final boolean DEVEL = true;
 
-   private SuffixTree<ColumnData> tokenMap = new SuffixTree<>();
-   private static TokenMatcher instance;
+   private Trie<ColumnData> tokenMap = new Trie<>();
    
    void insert(String token, ColumnData data) {
       tokenMap.put(token, data);

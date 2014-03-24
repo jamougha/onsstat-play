@@ -302,6 +302,7 @@
 
       var selectedNode = node.cloneNode();
       selectedNode._node = node;
+      selectedNode.textContent = node.textContent
       selectedNode.onclick = selectedLiClickHandler(selectedNode);
       $(node).fadeOut(1000);
 

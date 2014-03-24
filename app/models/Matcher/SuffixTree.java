@@ -3,7 +3,7 @@ package models.Matcher;
 import java.util.HashSet;
 import java.util.Set;
 
-final class SuffixTree<T> {
+final class Trie<T> {
    private final class Node<T> {
       final Node<T>[] children = new Node[36];
       final Set<T> elements = new HashSet<T>();
