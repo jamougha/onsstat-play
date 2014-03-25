@@ -28,8 +28,7 @@ public class DataCache {
    /** Return a list of data for cdids with titles matching the search string
     */
    public List<ColumnData> matchTokens(String tokenString) {
-      List<ColumnData> matches = matcher.find(tokenize(tokenString));
-      return matches;     
+      return matcher.find(tokenize(tokenString));
    }
    
    /** Do the DB work to initialize the cache */
